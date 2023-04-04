@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Lector de códigos de barras y QR</title>
+  </head>
+  <body>
+    <button onclick="scan()">Escanear código</button>
+    <br>
+    <input type="text" id="resultado" readonly>
+    <script src="https://cdn.jsdelivr.net/npm/quagga/dist/quagga.min.js"></script>
+    <script>
+      function scan() {
+        Quagga.init({
+          inputStream: {
+            name: "Live",
+            type: "LiveStream",
+            target: document.querySelector("#camera")    // elemento HTML para mostrar la vista previa de la cámara
+          },
+          decoder: {
+            readers: ["ean_reader", "qr_reader"]    // tipos de códigos a escanear
+          }
+        }, function(err) {
+            if (err) {
+                console.log(err);
+                return;
+            }
+            Quagga.start();    // iniciar el escaneo
+        });
+        Quagga.onDetected(function(result) {
+          document.getElementById("resultado").value = result.codeResult.code;
+          Quagga.stop();    // detener el escaneo después de que se ha leído un código
+        });
+      }
+    </script>
+    <div id="camera"></div>
+  </body>
+</html>
