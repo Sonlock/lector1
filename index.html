@@ -1,38 +1,67 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8">
-    <title>Lector de códigos de barras y QR</title>
-  </head>
-  <body>
-    <button onclick="scan()">Escanear código</button>
-    <br>
-    <input type="text" id="resultado" readonly>
-    <script src="https://cdn.jsdelivr.net/npm/quagga/dist/quagga.min.js"></script>
-    <script>
-      function scan() {
-        Quagga.init({
-          inputStream: {
-            name: "Live",
-            type: "LiveStream",
-            target: document.querySelector("#camera")    // elemento HTML para mostrar la vista previa de la cámara
-          },
-          decoder: {
-            readers: ["ean_reader", "qr_reader"]    // tipos de códigos a escanear
-          }
-        }, function(err) {
-            if (err) {
-                console.log(err);
-                return;
-            }
-            Quagga.start();    // iniciar el escaneo
+<head>
+  <meta charset="utf-8">
+  <title>Escanear código de barras con la cámara</title>
+  <script src="https://cdn.jsdelivr.net/npm/quagga/dist/quagga.min.js"></script>
+</head>
+<body>
+  <h1>Escanear código de barras con la cámara</h1>
+  <video id="video" width="300" height="200" autoplay></video>
+  <br>
+  <button id="startButton">Escanear código de barras</button>
+  <br>
+  <label for="codigoBarras">Código de barras escaneado:</label>
+  <input id="codigoBarras" type="text" readonly>
+
+  <script>
+    const video = document.getElementById('video');
+    const startButton = document.getElementById('startButton');
+    const codigoBarras = document.getElementById('codigoBarras');
+
+    // Acceder a la cámara y mostrar el feed en el elemento de video
+    function startCamera() {
+      navigator.mediaDevices.getUserMedia({ video: true })
+        .then(stream => {
+          video.srcObject = stream;
+          video.play();
+        })
+        .catch(err => {
+          console.log(`Error al acceder a la cámara: ${err}`);
         });
-        Quagga.onDetected(function(result) {
-          document.getElementById("resultado").value = result.codeResult.code;
-          Quagga.stop();    // detener el escaneo después de que se ha leído un código
-        });
-      }
-    </script>
-    <div id="camera"></div>
-  </body>
+    }
+
+    // Escanear el código de barras usando QuaggaJS
+    function scanBarcode() {
+      Quagga.init({
+        inputStream: {
+          name: 'Live',
+          type: 'LiveStream',
+          target: video,
+        },
+        decoder: {
+          readers: ['ean_reader']
+        }
+      }, (err) => {
+        if (err) {
+          console.log(`Error al iniciar Quagga: ${err}`);
+          return;
+        }
+        Quagga.start();
+      });
+
+      Quagga.onDetected((data) => {
+        console.log(`Código de barras detectado: ${data.codeResult.code}`);
+        codigoBarras.value = data.codeResult.code;
+        Quagga.stop();
+      });
+    }
+
+    // Iniciar la cámara y el escaneo cuando se hace clic en el botón
+    startButton.addEventListener('click', () => {
+      startCamera();
+      scanBarcode();
+    });
+  </script>
+</body>
 </html>
